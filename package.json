@@ -1,0 +1,29 @@
+{
+  "name": "ms-watch",
+  "version": "1.1.0",
+  "description": "",
+  "main": "lib/index.js",
+  "jsnext:main": "src/index.js",
+  "scripts": {
+    "start": "npm run build && webpack-dev-server --hot --config webpack.config.js",
+    "build": "webpack --config webpack.config.js",
+    "upload": "npm run build && npm publish",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "babel-plugin-transform-runtime": "^6.23.0",
+    "css-loader": "^6.5.1",
+    "style-loader": "^3.3.1",
+    "webpack": "^5.64.1",
+    "webpack-cli": "^4.9.1",
+    "webpack-dev-server": "^4.5.0"
+  },
+  "dependencies": {
+    "babel-runtime": "^6.26.0",
+    "js-base64": "^3.7.2",
+    "tti-polyfill": "^0.2.2"
+  }
+}

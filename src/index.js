@@ -11,6 +11,7 @@ const { MSStorage } = require("./storage.js");
 const { guid } = require('./utils.js');
 const { encode, decode } = require('js-base64');
 
+
 class MSMain {
   constructor(data) {
     const { projectName, url, router } = data || {};
@@ -40,6 +41,8 @@ class MSMain {
     this.url = url;
     this.router = router;
     this.firstEnter = true;
+    this.lastTime = 0;
+    this.requestId = guid(0, 24, false);
   }
 
   async init() {
@@ -51,8 +54,10 @@ class MSMain {
     this.device = new MSDevice();
     this.mconsole = new MSConsole();
     this.action = new MSUserAction(this.router);
-    this.storage = new MSStorage(this.action.userInfo);
-    this.useInfo = this.action.userInfo.getUserInfo();
+    this.userInfo = this.action.userInfo.getUserInfo() || {};
+
+    this.storage = new MSStorage(this.userInfo);
+   
 
     const timing = await this.timing.getTime();
     let obj = {};
@@ -82,10 +87,10 @@ class MSMain {
     const consoleInfo = this.mconsole.getInfo();
     const action = this.action.getInfo();
     delete action.userInfo;
-    const { userId, name, realname, phoneNo } = this.useInfo;
+    const { userId, name, realname, phoneNo } = this.userInfo;
     return {
       project: this.projectName,
-      requestId: guid(0, 24, false),
+      requestId: this.requestId,
       httpHost: window.location.host,
       requestUri: encodeURIComponent(window.location.href),
       user: {
@@ -116,8 +121,6 @@ class MSMain {
   }
 
   clearData() {
-    this.timing.clearInfo();
-    this.device.clearInfo();
     this.mconsole.clearInfo();
     this.action.clearInfo();
     this.firstEnter = false;
@@ -164,48 +167,33 @@ class MSMain {
     const result = JSON.stringify(value);
     return encode(result);
   }
-
-  report() {
+  // 上报页面加载时间、设备信息
+  async report() {
     const errList = this.saveLog();
-
-    const logs = errList.logs.length;
-    console.log('logs', logs);
-    if(logs > 0) {
-      const len = logs - 1;
-      this.msend.xhrReport(this.encodeData(errList))
-      if (Date.now() - errList.logs[len].createTime > reportSplitTime) {
-        console.log('report len > 0', errList);
-        this.msend.xhrReport(this.encodeData(errList))
-        this.clearData();
-        this.clearLog();
-      }
-    } else {
-      console.log('report len < 0', errList);
-      this.msend.xhrReport(this.encodeData(errList))
-      this.clearData();
-      this.clearLog();
+    if(this.firstEnter) {
+      this.reportData(errList);
     }
   }
-
+  // 上报错误
   errorReport() {
     const errorList = this.error.errorList
     const errList = this.saveLog();
-    const logs = errList.logs.length;
-    if(logs > 0) {
-      const len = logs - 1;
-      const bool1 = Date.now() - errList.logs[len].createTime > reportSplitTime;
-      const bool2 = errorList.length > errorNum;
-      if (bool1 && bool2) {
-        console.log('errorReport len > 0', errList);
-        this.msend.xhrReport(this.encodeData(errList))
-        this.clearData();
-        this.clearLog();
-      }
-    } else {
-      console.log('errorReport len < 0', errList);
-      this.msend.xhrReport(this.encodeData(errList))
+    const bool1 = Date.now() - this.lastTime > reportSplitTime;
+    const bool2 = errorList.length >= errorNum;
+
+    if (bool1 && bool2) {
+      this.reportData(errList);
+    }
+  }
+
+  async reportData(errList) {
+    try {
+      await this.msend.xhrReport(this.encodeData(errList));
       this.clearData();
       this.clearLog();
+      this.lastTime = Date.now();
+    } catch(err) {
+      throw err
     }
   }
 }

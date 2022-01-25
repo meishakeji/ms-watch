@@ -3,6 +3,7 @@
 class MSStorage {
   constructor(userInfo) {
     this.localStorage = window.localStorage;
+    this.userId = userInfo.userId;
   }
 
   get(key) {

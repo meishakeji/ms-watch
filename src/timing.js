@@ -87,7 +87,6 @@ class MSTiming {
       if (typeof performance.getEntriesByType === 'function') {
         const fpList = this.performance.getEntriesByName('first-paint');
         const fcpList = this.performance.getEntriesByName('first-contentful-paint');
-        // console.log('fpList', fpList, fcpList);
         let fp = fpList && fpList[0].duration
         let fcp = fcpList && fcpList[0].duration
         obj = {

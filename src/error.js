@@ -24,18 +24,10 @@ class MSError {
   // type 为 unhandledrejection 捕获 promise 错误
   recordError(callback) {
     this.handleAddListener("error", (e) => {
-      const result = this.getError(e);
-      this.errorList.push(result);
-      if(callback && typeof callback === 'function') {
-        callback();
-      }
+      this.dealError(e, callback);
     });
     this.handleAddListener("unhandledrejection", (e) => {
-      const result = this.getError(e);
-      this.errorList.push(result);
-      if(callback && typeof callback === 'function') {
-        callback();
-      }
+      this.dealError(e, callback);
     });
     this.handlerError((message, source, lineno, colno, error) => {
       const e = {
@@ -46,13 +38,33 @@ class MSError {
         colno,
         ...error
       }
-      const result = this.getError(e);
-      this.errorList.push(result);
-      if(callback && typeof callback === 'function') {
-        callback();
-      }
+      this.dealError(e, callback);
     });
   }
+  findItem(array, { message, errorType, type, outerHTML }) {
+    for(let item of array) {
+      const bool1 = message && item.message === message && item.errorType === errorType && item.type === type;
+      const bool2 = outerHTML && item.outerHTML === outerHTML && item.errorType === errorType && item.type === type;
+      if(bool1 || bool2) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  // 处理错误
+  dealError(e, callback) {
+    const result = this.getError(e);
+    
+    const bool = this.findItem(this.errorList, result);
+    if(!bool) {
+      this.errorList.push(result);
+    }
+    if(callback && typeof callback === 'function') {
+      callback(e);
+    }
+  }
+
   // TypeError: 类型错误
   getSyntaxError(e) {
     const error = e.error;
@@ -108,7 +120,6 @@ class MSError {
     const nodeNames = ["img", "script", "link"];
     const name = target.nodeName.toLocaleLowerCase();
     if (nodeNames.includes(name)) {
-      console.log('target', target);
       obj = {
         nodeName: target.nodeName,
         errorText: "资源加载错误",

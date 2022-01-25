@@ -81,9 +81,9 @@ const TimeLog = [
 ];
 
 // 上报间隔时间
-const reportSplitTime = 1000 * 60 * 3;
+const reportSplitTime = 1000 * 10;
 // 错误超过6条上报
-const errorNum = 6;
+const errorNum = 4;
 
 module.exports = {
   getBaseUrl,

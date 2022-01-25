@@ -6,8 +6,12 @@ const { guid } = require("./utils.js");
 // 各系统用户信息需要存储在localStorage中的 userInfo 字段
 class MSUserInfo {
   constructor() {
-    this.mstorage = new MSStorage();
-    this.userInfo = this.mstorage.get('userInfo');
+    const userInfo = localStorage.getItem('userInfo');
+    if(userInfo) {
+      this.userInfo = JSON.parse(userInfo);
+    } else {
+      this.userInfo = {};
+    }
     this.userId = this.userInfo && this.userInfo.userId;
   }
   getUserInfo() {
@@ -69,7 +73,7 @@ class MSUserAction {
       window.attachEvent("on" + type, fn);
     }
   }
-
+  // 获取 className ID
   getClassName(target) {
     let ids = target.id;
     let className = target.className;
@@ -79,7 +83,18 @@ class MSUserAction {
       target = target.parentElement;
     }
 
-    return `id:${ids} className:${className}`;
+    return `id选择器:${ids} class选择器:${className}`;
+  }
+
+  findItem(array, { left, top, url }) {
+    for(let item of array) {
+      const bool1 = Math.abs(item.left - left) < 6;
+      const bool2 = Math.abs(item.top - top) < 6;
+      if(bool1 && bool2) {
+        return true;
+      }
+    }
+    return false;
   }
   // 监听点击事件，获取点击位置，点击元素信息
   listenClick() {
@@ -87,14 +102,18 @@ class MSUserAction {
       const target = e.target;
       const innerText = target.innerText;
       const className = this.getClassName(target);
-      this.clickList.push({
+      const obj = {
         innerText,
         className,
         left: e.clientX || e.x || e.offsetX || e.pageX,
         top: e.clientY || e.y || e.offsetY || e.pageY,
         createTime: Math.floor(Date.now() / 1000),
         url: encodeURIComponent(window.location.href),
-      })
+      };
+
+      if(!this.findItem(this.clickList, obj)) {
+        this.clickList.push(obj);
+      }
     })
   }
 

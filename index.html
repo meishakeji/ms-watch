@@ -9,24 +9,48 @@
 <body>
   <div id="app">
     Meisha Watch
+    <button class="error">测试错误</button>
+    <button class="promise">promise</button>
+    <button class="resource">resource</button>
+    <div class="test"></div>
     <!-- <img src="//cdn.meishakeji.com/vschool/application_icon/学生请假@2x.png" alt=""> -->
   </div>
   <script src="index.js"></script>
   <script>
+    // const person = void 0
+    // person.name
+    // nodefined
+    // new Image().src = '/remote/image/notdeinfed.png'
+    // fetch('/remote/notdefined', {})
+    // const xx;
     
+    // fetch('https://tuia.cn/test')
+
+    document.querySelector('.error').addEventListener('click', (event) => {
+      console.log('123123');
+      console.log(event);
+      const person = void 0
+      person.name
+      nodefined
+      new Image().src = '/remote/image/notdeinfed.png'
+      console.log(a);
+      fetch('https://tuia.cn/test')
+    })
+
+    document.querySelector('.promise').addEventListener('click', (event) => {
+      console.log('promise');
+      fetch('/promise')
+    })
+    document.querySelector('.resource').addEventListener('click', (event) => {
+      console.log('promise');
+      new Image().src = '/remote/image/notdeinfed.png'
+      let html = `<img src="/image/kkk.png"><link href="/foundnull.css" rel="stylesheet"/>`;
+      document.querySelector('.test').innerHTML = html;
+    })
+
   </script>
-  <script>
-    const person = void 0
-    person.name
-    nodefined
-    new Image().src = '/remote/image/notdeinfed.png'
-    fetch('/remote/notdefined', {})
-    const xx;
-    
-    fetch('https://tuia.cn/test')
-  </script>
-  <img src="https://yun.tuia.cn/image/kkk.png">
-  <script src="https://yun.tuia.cn/foundnull.js"></script>
-  <link href="https://yun.tuia.cn/foundnull.css" rel="stylesheet" />
+  <img src="/image/kkk.png">
+  <script src="/foundnull.js"></script>
+  <link href="/foundnull.css" rel="stylesheet" />
 </body>
 </html>

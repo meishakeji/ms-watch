@@ -19,6 +19,9 @@ const tryError = (callback) => {
   }
 }
 
+
+window.log = console.log.bind(console);
+
 module.exports = {
   guid,
   tryError,

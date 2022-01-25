@@ -38,7 +38,7 @@ import { MSMain } from 'ms-watch';
 3、支持CommonJS语法引入：
 
 ```javascript
-const { MSMain } = require('meisha-fe-watch');
+const { MSMain } = require('ms-watch');
 ```
 
 

@@ -5,8 +5,8 @@ module.exports = {
   entry: './src/index.js',
   mode: 'development',
   output: {
-    filename: 'index.js',
-    path: path.resolve(__dirname, './lib'),
+    filename: 'ms-watch.js',
+    path: path.resolve(__dirname, './ms-watch'),
     library: 'meisha_watch',
     libraryTarget: 'umd',
   },

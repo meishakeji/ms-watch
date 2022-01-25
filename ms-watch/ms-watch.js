@@ -414,9 +414,9 @@ const TimeLog = [
 ];
 
 // 上报间隔时间
-const reportSplitTime = 1000 * 60 * 3;
+const reportSplitTime = 1000 * 10;
 // 错误超过6条上报
-const errorNum = 6;
+const errorNum = 4;
 
 module.exports = {
   getBaseUrl,
@@ -728,18 +728,10 @@ class MSError {
   // type 为 unhandledrejection 捕获 promise 错误
   recordError(callback) {
     this.handleAddListener("error", (e) => {
-      const result = this.getError(e);
-      this.errorList.push(result);
-      if(callback && typeof callback === 'function') {
-        callback();
-      }
+      this.dealError(e, callback);
     });
     this.handleAddListener("unhandledrejection", (e) => {
-      const result = this.getError(e);
-      this.errorList.push(result);
-      if(callback && typeof callback === 'function') {
-        callback();
-      }
+      this.dealError(e, callback);
     });
     this.handlerError((message, source, lineno, colno, error) => {
       const e = {
@@ -750,13 +742,33 @@ class MSError {
         colno,
         ...error
       }
-      const result = this.getError(e);
-      this.errorList.push(result);
-      if(callback && typeof callback === 'function') {
-        callback();
-      }
+      this.dealError(e, callback);
     });
   }
+  findItem(array, { message, errorType, type, outerHTML }) {
+    for(let item of array) {
+      const bool1 = message && item.message === message && item.errorType === errorType && item.type === type;
+      const bool2 = outerHTML && item.outerHTML === outerHTML && item.errorType === errorType && item.type === type;
+      if(bool1 || bool2) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  // 处理错误
+  dealError(e, callback) {
+    const result = this.getError(e);
+    
+    const bool = this.findItem(this.errorList, result);
+    if(!bool) {
+      this.errorList.push(result);
+    }
+    if(callback && typeof callback === 'function') {
+      callback(e);
+    }
+  }
+
   // TypeError: 类型错误
   getSyntaxError(e) {
     const error = e.error;
@@ -812,7 +824,6 @@ class MSError {
     const nodeNames = ["img", "script", "link"];
     const name = target.nodeName.toLocaleLowerCase();
     if (nodeNames.includes(name)) {
-      console.log('target', target);
       obj = {
         nodeName: target.nodeName,
         errorText: "资源加载错误",
@@ -913,6 +924,7 @@ const { MSStorage } = __webpack_require__(/*! ./storage.js */ "./src/storage.js"
 const { guid } = __webpack_require__(/*! ./utils.js */ "./src/utils.js");
 const { encode, decode } = __webpack_require__(/*! js-base64 */ "./node_modules/js-base64/base64.js");
 
+
 class MSMain {
   constructor(data) {
     const { projectName, url, router } = data || {};
@@ -942,6 +954,8 @@ class MSMain {
     this.url = url;
     this.router = router;
     this.firstEnter = true;
+    this.lastTime = 0;
+    this.requestId = guid(0, 24, false);
   }
 
   async init() {
@@ -953,8 +967,10 @@ class MSMain {
     this.device = new MSDevice();
     this.mconsole = new MSConsole();
     this.action = new MSUserAction(this.router);
-    this.storage = new MSStorage(this.action.userInfo);
-    this.useInfo = this.action.userInfo.getUserInfo();
+    this.userInfo = this.action.userInfo.getUserInfo() || {};
+
+    this.storage = new MSStorage(this.userInfo);
+   
 
     const timing = await this.timing.getTime();
     let obj = {};
@@ -984,10 +1000,10 @@ class MSMain {
     const consoleInfo = this.mconsole.getInfo();
     const action = this.action.getInfo();
     delete action.userInfo;
-    const { userId, name, realname, phoneNo } = this.useInfo;
+    const { userId, name, realname, phoneNo } = this.userInfo;
     return {
       project: this.projectName,
-      requestId: guid(0, 24, false),
+      requestId: this.requestId,
       httpHost: window.location.host,
       requestUri: encodeURIComponent(window.location.href),
       user: {
@@ -1018,8 +1034,6 @@ class MSMain {
   }
 
   clearData() {
-    this.timing.clearInfo();
-    this.device.clearInfo();
     this.mconsole.clearInfo();
     this.action.clearInfo();
     this.firstEnter = false;
@@ -1066,63 +1080,48 @@ class MSMain {
     const result = JSON.stringify(value);
     return encode(result);
   }
-
-  report() {
+  // 上报页面加载时间、设备信息
+  async report() {
     const errList = this.saveLog();
-
-    const logs = errList.logs.length;
-    console.log('logs', logs);
-    if(logs > 0) {
-      const len = logs - 1;
-      this.msend.xhrReport(this.encodeData(errList))
-      if (Date.now() - errList.logs[len].createTime > reportSplitTime) {
-        console.log('report len > 0', errList);
-        this.msend.xhrReport(this.encodeData(errList))
-        this.clearData();
-        this.clearLog();
-      }
-    } else {
-      console.log('report len < 0', errList);
-      this.msend.xhrReport(this.encodeData(errList))
-      this.clearData();
-      this.clearLog();
+    if(this.firstEnter) {
+      this.reportData(errList);
     }
   }
-
+  // 上报错误
   errorReport() {
     const errorList = this.error.errorList
     const errList = this.saveLog();
-    const logs = errList.logs.length;
-    if(logs > 0) {
-      const len = logs - 1;
-      const bool1 = Date.now() - errList.logs[len].createTime > reportSplitTime;
-      const bool2 = errorList.length > errorNum;
-      if (bool1 && bool2) {
-        console.log('errorReport len > 0', errList);
-        this.msend.xhrReport(this.encodeData(errList))
-        this.clearData();
-        this.clearLog();
-      }
-    } else {
-      console.log('errorReport len < 0', errList);
-      this.msend.xhrReport(this.encodeData(errList))
+    const bool1 = Date.now() - this.lastTime > reportSplitTime;
+    const bool2 = errorList.length >= errorNum;
+
+    if (bool1 && bool2) {
+      this.reportData(errList);
+    }
+  }
+
+  async reportData(errList) {
+    try {
+      await this.msend.xhrReport(this.encodeData(errList));
       this.clearData();
       this.clearLog();
+      this.lastTime = Date.now();
+    } catch(err) {
+      throw err
     }
   }
 }
 
-// localStorage.setItem('userInfo', JSON.stringify({
-//   userId: '123',
-//   name: '123',
-//   phoneNo: '18659975072',
-// }))
-// const m = new MSMain({
-//   projectName: 'msManagerAdmin',
-//   url: 'http://10.38.243.19:9090/v1/fex/track',
-//   router: {}
-// })
-// window.ms = m;
+localStorage.setItem('userInfo', JSON.stringify({
+  userId: '123',
+  name: '123',
+  phoneNo: '18659975072',
+}))
+const m = new MSMain({
+  projectName: 'msManagerAdmin',
+  url: 'http://10.38.243.19:9090/v1/fex/track',
+  router: {}
+})
+window.ms = m;
 module.exports = {
   MSMain
 };
@@ -1210,6 +1209,7 @@ module.exports = {
 class MSStorage {
   constructor(userInfo) {
     this.localStorage = window.localStorage;
+    this.userId = userInfo.userId;
   }
 
   get(key) {
@@ -1331,7 +1331,6 @@ class MSTiming {
       if (typeof performance.getEntriesByType === 'function') {
         const fpList = this.performance.getEntriesByName('first-paint');
         const fcpList = this.performance.getEntriesByName('first-contentful-paint');
-        // console.log('fpList', fpList, fcpList);
         let fp = fpList && fpList[0].duration
         let fcp = fcpList && fcpList[0].duration
         obj = {
@@ -1383,8 +1382,12 @@ const { guid } = __webpack_require__(/*! ./utils.js */ "./src/utils.js");
 // 各系统用户信息需要存储在localStorage中的 userInfo 字段
 class MSUserInfo {
   constructor() {
-    this.mstorage = new MSStorage();
-    this.userInfo = this.mstorage.get('userInfo');
+    const userInfo = localStorage.getItem('userInfo');
+    if(userInfo) {
+      this.userInfo = JSON.parse(userInfo);
+    } else {
+      this.userInfo = {};
+    }
     this.userId = this.userInfo && this.userInfo.userId;
   }
   getUserInfo() {
@@ -1456,7 +1459,18 @@ class MSUserAction {
       target = target.parentElement;
     }
 
-    return `id:${ids} className:${className}`;
+    return `id选择器:${ids} class选择器:${className}`;
+  }
+
+  findItem(array, { left, top, url }) {
+    for(let item of array) {
+      const bool1 = Math.abs(item.left - left) < 6;
+      const bool2 = Math.abs(item.top - top) < 6;
+      if(bool1 && bool2) {
+        return true;
+      }
+    }
+    return false;
   }
   // 监听点击事件，获取点击位置，点击元素信息
   listenClick() {
@@ -1464,14 +1478,18 @@ class MSUserAction {
       const target = e.target;
       const innerText = target.innerText;
       const className = this.getClassName(target);
-      this.clickList.push({
+      const obj = {
         innerText,
         className,
         left: e.clientX || e.x || e.offsetX || e.pageX,
         top: e.clientY || e.y || e.offsetY || e.pageY,
         createTime: Math.floor(Date.now() / 1000),
         url: encodeURIComponent(window.location.href),
-      })
+      };
+
+      if(!this.findItem(this.clickList, obj)) {
+        this.clickList.push(obj);
+      }
     })
   }
 
@@ -1523,6 +1541,9 @@ const tryError = (callback) => {
     }
   }
 }
+
+
+window.log = console.log.bind(console);
 
 module.exports = {
   guid,
@@ -1581,4 +1602,4 @@ module.exports = {
 /******/ })()
 ;
 });
-//# sourceMappingURL=index.js.map
+//# sourceMappingURL=ms-watch.js.map

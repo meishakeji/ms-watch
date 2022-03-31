@@ -23,28 +23,29 @@ class MSTiming {
     obj.redirectTime = t.redirectEnd - t.redirectStart
     // DNS解析，DNS查询耗时
     obj.dnsTime = t.domainLookupEnd - t.domainLookupStart;
-    // TCP链接耗时
+    // TCP连接耗时
     obj.connectTime = t.connectEnd - t.connectStart;
     // HTTP请求耗时
     obj.requestTime = t.responseEnd - t.requestStart;
     // 获得首字节耗费时间，也叫TTFB
-    obj.firstByteTime = t.responseStart - t.navigationStart;
+    obj.firstByteTime = t.responseStart - t.domainLookupStart;
     // 解析dom树耗时
     obj.domReadyTime = t.domComplete - t.responseEnd;
     // 白屏时间耗时
     obj.whiteTime = t.responseStart - t.navigationStart;
     // DOMready时间
-    obj.domLoadTime = t.domContentLoadedEventEnd - t.navigationStart;
+    obj.domLoadTime = t.domContentLoadedEventEnd - t.fetchStart;
     // 脚本加载时间
     obj.jsEventTime = t.domContentLoadedEventEnd - t.domContentLoadedEventStart
     // 页面加载完成的时间 即：onload时间
-    obj.loadTime = t.loadEventEnd - t.navigationStart;
+    obj.loadTime = t.loadEventEnd - t.fetchStart;
     // 首屏时间
-    obj.paintTime = t.domComplete - t.navigationStart;
+    obj.paintTime = t.domComplete - t.fetchStart;
     // 首次可交互时间
-    obj.ttiTime = t.domInteractive - t.navigationStart;
+    obj.ttiTime = t.domInteractive - t.fetchStart;
     // FP首屏时间   FCP首次绘制时间  首次可交互时间  用户首次交互时间  
-    const res = this.getFPTime();
+    obj.fpTime = t.responseEnd - t.fetchStart;
+    // const res = this.getFPTime();
     // const res = await this.getFirstPaintTime()
     // obj.userKeyTime = {
     //   fmpTime: obj.paintTime,
@@ -70,8 +71,8 @@ class MSTiming {
     if (typeof performance.getEntriesByType === 'function') {
       const fpList = this.performance.getEntriesByName('first-paint');
       const fcpList = this.performance.getEntriesByName('first-contentful-paint');
-      let fp = fpList && fpList[0].startTime
-      let fcp = fcpList && fcpList[0].startTime
+      let fp = fpList && fpList[0] && fpList[0].startTime
+      let fcp = fcpList && fpList[0] && fcpList[0].startTime
       obj = {
         fpTime: fp,
         fcpTime: fcp,
@@ -87,8 +88,8 @@ class MSTiming {
       if (typeof performance.getEntriesByType === 'function') {
         const fpList = this.performance.getEntriesByName('first-paint');
         const fcpList = this.performance.getEntriesByName('first-contentful-paint');
-        let fp = fpList && fpList[0].duration
-        let fcp = fcpList && fcpList[0].duration
+        let fp = fpList && fpList[0] && fpList[0].duration
+        let fcp = fcpList && fcpList[0] && fcpList[0].duration
         obj = {
           fpTime: fp,
           fcpTime: fcp,

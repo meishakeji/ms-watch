@@ -46,14 +46,14 @@ const TimeLog = [
     key: "firstByteTime",
     value: "首字节耗时",
   },
-  {
-    key: "domReadyTime",
-    value: "解析dom树耗时",
-  },
-  {
-    key: "whiteTime",
-    value: "白屏时间",
-  },
+  // {
+  //   key: "domReadyTime",
+  //   value: "解析dom树耗时",
+  // },
+  // {
+  //   key: "whiteTime",
+  //   value: "白屏时间",
+  // },
   {
     key: "domLoadTime",
     value: "DOMready时间",
@@ -66,10 +66,10 @@ const TimeLog = [
     key: "fpTime",
     value: "FP首屏时间",
   },
-  {
-    key: "fcpTime",
-    value: "FCP首次绘制时间",
-  },
+  // {
+  //   key: "fcpTime",
+  //   value: "FCP首次绘制时间",
+  // },
   {
     key: "ttiTime",
     value: "首次可交互时间",

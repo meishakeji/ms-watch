@@ -416,7 +416,7 @@ const TimeLog = [
 // 上报间隔时间
 const reportSplitTime = 1000 * 10;
 // 错误超过6条上报
-const errorNum = 4;
+const errorNum = 5;
 
 module.exports = {
   getBaseUrl,
@@ -805,7 +805,8 @@ class MSError {
   // promise 错误
   getPromiseError(e) {
     const reason = e.reason;
-    const errorType = reason.stack.split(":")[0];
+    const errorList = reason.stack && reason.stack.split(":");
+    const errorType = errorList && errorList[0];
     const errorText = ErrorType[errorType] || '未定义错误';
     let obj = {
       errorText,
@@ -1111,17 +1112,6 @@ class MSMain {
   }
 }
 
-localStorage.setItem('userInfo', JSON.stringify({
-  userId: '123',
-  name: '123',
-  phoneNo: '18659975072',
-}))
-const m = new MSMain({
-  projectName: 'msManagerAdmin',
-  url: 'http://10.38.243.19:9090/v1/fex/track',
-  router: {}
-})
-window.ms = m;
 module.exports = {
   MSMain
 };
@@ -1314,8 +1304,8 @@ class MSTiming {
     if (typeof performance.getEntriesByType === 'function') {
       const fpList = this.performance.getEntriesByName('first-paint');
       const fcpList = this.performance.getEntriesByName('first-contentful-paint');
-      let fp = fpList && fpList[0].startTime
-      let fcp = fcpList && fcpList[0].startTime
+      let fp = fpList && fpList[0] && fpList[0].startTime
+      let fcp = fcpList && fpList[0] && fcpList[0].startTime
       obj = {
         fpTime: fp,
         fcpTime: fcp,
@@ -1331,8 +1321,8 @@ class MSTiming {
       if (typeof performance.getEntriesByType === 'function') {
         const fpList = this.performance.getEntriesByName('first-paint');
         const fcpList = this.performance.getEntriesByName('first-contentful-paint');
-        let fp = fpList && fpList[0].duration
-        let fcp = fcpList && fcpList[0].duration
+        let fp = fpList && fpList[0] && fpList[0].duration
+        let fcp = fcpList && fcpList[0] && fcpList[0].duration
         obj = {
           fpTime: fp,
           fcpTime: fcp,

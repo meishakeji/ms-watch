@@ -101,7 +101,8 @@ class MSError {
   // promise 错误
   getPromiseError(e) {
     const reason = e.reason;
-    const errorType = reason.stack.split(":")[0];
+    const errorList = reason.stack && reason.stack.split(":");
+    const errorType = errorList && errorList[0];
     const errorText = ErrorType[errorType] || '未定义错误';
     let obj = {
       errorText,

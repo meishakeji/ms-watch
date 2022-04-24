@@ -43,8 +43,8 @@ class MSError {
   }
   findItem(array, { message, errorType, type, outerHTML }) {
     for(let item of array) {
-      const bool1 = message && item.message === message && item.errorType === errorType && item.type === type;
-      const bool2 = outerHTML && item.outerHTML === outerHTML && item.errorType === errorType && item.type === type;
+      const bool1 = message && item.message === message && item.errorType === errorType;
+      const bool2 = outerHTML && item.outerHTML === outerHTML && item.type === type;
       if(bool1 || bool2) {
         return true;
       }

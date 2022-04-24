@@ -25,6 +25,16 @@ const getBaseUrl = () => {
   return baseUrl;
 };
 
+const initLog = () => {
+  if (ENV.DEV || ENV.TEST) {
+    window.log = console.log.bind(console);
+  } else {
+    window.log = () => {};
+  }
+};
+
+
+
 const TimeLog = [
   {
     key: "redirectTime",
@@ -83,10 +93,11 @@ const TimeLog = [
 // 上报间隔时间
 const reportSplitTime = 1000 * 10;
 // 错误超过6条上报
-const errorNum = 5;
+const errorNum = 3;
 
 module.exports = {
   getBaseUrl,
+  initLog,
   TimeLog,
   reportSplitTime,
   errorNum,

@@ -1,13 +1,14 @@
-
 // 存储类
 class MSStorage {
   constructor(userInfo) {
-    this.localStorage = window.localStorage;
-    this.userId = userInfo.userId;
+    this.userId = userInfo && userInfo.userId;
   }
 
   get(key) {
-    const result = this.localStorage.getItem(key);
+    if (!this.userId) {
+      return false;
+    }
+    const result = window.localStorage.getItem(`${key}-${this.userId}`);
     if (result) {
       return JSON.parse(result);
     }
@@ -15,11 +16,14 @@ class MSStorage {
   }
 
   set(key, value) {
-    this.localStorage.setItem(`${key}-${this.userId}`, JSON.stringify(value));
+    if (!this.userId) {
+      return false;
+    }
+    window.localStorage.setItem(`${key}-${this.userId}`, JSON.stringify(value));
   }
 
   remove(key) {
-    this.localStorage.removeItem(key);
+    window.localStorage.removeItem(key);
   }
 
 }

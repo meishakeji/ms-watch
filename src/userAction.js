@@ -1,32 +1,10 @@
-
-const { MSStorage } = require("./storage.js");
-const { guid } = require("./utils.js");
-
-// 获取用户信息
-// 各系统用户信息需要存储在localStorage中的 userInfo 字段
-class MSUserInfo {
-  constructor() {
-    const userInfo = localStorage.getItem('userInfo');
-    if(userInfo) {
-      this.userInfo = JSON.parse(userInfo);
-    } else {
-      this.userInfo = {};
-    }
-    this.userId = this.userInfo && this.userInfo.userId;
-  }
-  getUserInfo() {
-    return this.userInfo || {};
-  }
-
-}
-
 // 记录采集用户信息操作
 class MSUserAction {
-  constructor(router) {
+  constructor(router, userInfo) {
     if(!router) {
       throw new Error('请传入router实例')
     }
-    this.userInfo = new MSUserInfo();
+    this.userInfo = userInfo;
     this.router = router;
     this.routeList = [];
     this.clickList = [];
@@ -119,7 +97,7 @@ class MSUserAction {
 
   getInfo() {
     return {
-      userInfo: this.userInfo.userInfo,
+      // userInfo: this.userInfo.userInfo,
       clickList: this.clickList,
       routeList: this.routeList,
     }
@@ -133,6 +111,5 @@ class MSUserAction {
 
 
 module.exports = {
-  MSUserAction,
-  MSUserInfo,
+  MSUserAction
 };

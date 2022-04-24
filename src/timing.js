@@ -53,7 +53,7 @@ class MSTiming {
     // }
     const result = {
       ...obj,
-      ...res,
+      // ...res,
       // url: window.location.href,
     };
     for(let key in result) {

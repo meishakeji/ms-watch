@@ -94,6 +94,7 @@ const TimeLog = [
 const reportSplitTime = 1000 * 10;
 // 错误超过6条上报
 const errorNum = 3;
+const actionNum = 3;
 
 module.exports = {
   getBaseUrl,
@@ -101,4 +102,5 @@ module.exports = {
   TimeLog,
   reportSplitTime,
   errorNum,
+  actionNum,
 };

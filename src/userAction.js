@@ -40,8 +40,8 @@ class MSUserAction {
     });
   }
 
-  listenAction() {
-    this.listenClick();
+  listenAction(callback) {
+    this.listenClick(callback);
   }
 
   handleAddListener(type, fn) {
@@ -75,10 +75,10 @@ class MSUserAction {
     return false;
   }
   // 监听点击事件，获取点击位置，点击元素信息
-  listenClick() {
+  listenClick(callback) {
     this.handleAddListener('click', (e) => {
       const target = e.target;
-      const innerText = target.innerText;
+      const innerText = target.innerText.slice(0, 40);
       const className = this.getClassName(target);
       const obj = {
         innerText,
@@ -91,6 +91,9 @@ class MSUserAction {
 
       if(!this.findItem(this.clickList, obj)) {
         this.clickList.push(obj);
+      }
+      if (callback && typeof callback === 'function') {
+        callback()
       }
     })
   }

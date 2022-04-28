@@ -3,7 +3,7 @@
 const { MSTiming } = require("./timing.js");
 const { MSDevice } = require("./device.js");
 const { MSConsole } = require("./console.js");
-const { TimeLog, reportSplitTime, errorNum, initLog } = require("./config.js");
+const { TimeLog, reportSplitTime, errorNum, actionNum, initLog } = require("./config.js");
 const { MSError } = require("./error.js");
 const { MSUserAction } = require("./userAction.js");
 const { MSSendData } = require("./postData.js");
@@ -15,7 +15,10 @@ class MsWatch {
   constructor(data) {
     try {
       initLog();
-      const { projectName, url, router } = data || {};
+      const { projectName, url, router, reportTime, errorMaxNum, actionMaxNum } = data || {};
+      this.reportTime = reportTime || reportSplitTime;
+      this.errorMaxNum = errorMaxNum || errorNum;
+      this.actionMaxNum = actionMaxNum || actionNum;
       this.error = new MSError();
       this.listenLoad();
       this.listenUnload();
@@ -76,7 +79,7 @@ class MsWatch {
     }
     this.mconsole.log(obj);
     this.action.listenRouter();
-    this.action.listenAction();
+    this.action.listenAction(this.actionReport.bind(this));
     this.mconsole.warn();
     this.mconsole.error();
     this.error.recordError(this.errorReport.bind(this));
@@ -225,11 +228,23 @@ class MsWatch {
   errorReport() {
     const errorList = this.error.errorList
     const errList = this.saveLog();
-    const bool1 = Date.now() - this.lastTime > reportSplitTime;
-    const bool2 = errorList.length >= errorNum;
+    const bool1 = Date.now() - this.lastTime > this.reportTime;
+    const bool2 = errorList.length >= this.errorMaxNum;
 
     if (bool1 && bool2) {
       this.reportData(errList);
+    }
+  }
+  // 上报
+  actionReport() {
+    const clickList = this.action.clickList
+    const routeList = this.action.routeList
+    const data = this.saveLog();
+    const bool1 = Date.now() - this.lastTime > this.reportTime;
+    const bool2 = clickList.length >= this.actionMaxNum || routeList.length >= this.actionMaxNum;
+
+    if (bool1 && bool2) {
+      this.reportData(data);
     }
   }
 

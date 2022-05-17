@@ -119,6 +119,6 @@ class MSTiming {
   }
 }
 
-module.exports = {
+export {
   MSTiming,
 };

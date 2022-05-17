@@ -10,11 +10,12 @@ class MSConsole {
     this.warnFns = [];
     this.errorList = [];
     this.errorFns = [];
+    this.formatLog = console.log.bind(console);
   }
 
   log(obj, color1 = "#35495e", color2 = "#41b883") {
     for (let key in obj) {
-      log(
+      this.formatLog(
         `%c ${key} %c ${obj[key]} `,
         `background: ${color1} ; padding: 1px; border-radius: 3px 0 0 3px;  color: #fff`,
         `background: ${color2} ; padding: 1px; border-radius: 0 3px 3px 0;  color: #fff`
@@ -88,6 +89,6 @@ class MSConsole {
   }
 }
 
-module.exports = {
+export {
   MSConsole,
 };

@@ -56,6 +56,6 @@ class MSSendData {
   }
 }
 
-module.exports = {
+export {
   MSSendData,
 };

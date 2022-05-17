@@ -96,7 +96,7 @@ const reportSplitTime = 1000 * 10;
 const errorNum = 3;
 const actionNum = 3;
 
-module.exports = {
+export {
   getBaseUrl,
   initLog,
   TimeLog,

@@ -153,6 +153,6 @@ class MSDevice {
     };
   }
 }
-module.exports = {
+export {
   MSDevice,
 };

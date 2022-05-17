@@ -195,6 +195,6 @@ class MSError {
   }
 }
 
-module.exports = {
+export {
   MSError,
 };

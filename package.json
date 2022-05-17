@@ -1,6 +1,6 @@
 {
   "name": "ms-watch",
-  "version": "1.4.2",
+  "version": "1.4.5",
   "description": "",
   "main": "lib/index.js",
   "jsnext:main": "src/index.js",

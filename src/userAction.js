@@ -113,6 +113,6 @@ class MSUserAction {
 }
 
 
-module.exports = {
+export {
   MSUserAction
 };

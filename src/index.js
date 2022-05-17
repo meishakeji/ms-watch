@@ -1,15 +1,15 @@
 // 用户信息|内存信息| 导航信息|网络质量|用户操作路径｜javascript 异常信息 ｜ js执行时间 ｜ user-agent｜报文生成时间 
 
-const { MSTiming } = require("./timing.js");
-const { MSDevice } = require("./device.js");
-const { MSConsole } = require("./console.js");
-const { TimeLog, reportSplitTime, errorNum, actionNum, initLog } = require("./config.js");
-const { MSError } = require("./error.js");
-const { MSUserAction } = require("./userAction.js");
-const { MSSendData } = require("./postData.js");
-const { MSStorage } = require("./storage.js");  
-const { guid } = require('./utils.js');
-const { encode, decode } = require('js-base64');
+import { MSTiming } from "./timing.js"
+import { MSDevice } from "./device.js"
+import { MSConsole } from "./console.js"
+import { TimeLog, reportSplitTime, errorNum, actionNum, initLog } from "./config.js"
+import { MSError } from "./error.js"
+import { MSUserAction } from "./userAction.js"
+import { MSSendData } from "./postData.js"
+import { MSStorage } from "./storage.js"
+import { guid } from './utils.js'
+import { encode, decode } from 'js-base64'
 
 class MsWatch {
   constructor(data) {
@@ -97,9 +97,9 @@ class MsWatch {
   getData() {
     const timing = this.timing && this.timing.getTime();
     const device = this.device && this.device.getInfo();
-    const consoleInfo = this.mconsole.getInfo();
-    const action = this.action.getInfo();
-    delete action.userInfo;
+    const consoleInfo = this.mconsole && this.mconsole.getInfo();
+    const action = this.action && this.action.getInfo();
+    action.userInfo = {};
     const { userId, name, realname, phoneNo } = this.userInfo || {};
     consoleInfo['typeError'] = this.error.errorList;
     let logObj = {
@@ -184,29 +184,34 @@ class MsWatch {
   }
 
   saveLog() {
-    const data = this.getData();
-    const errList = this.storage && this.storage.get('MsError') || [];
-    
-    if(errList.length > 0) {
-      const conso = data.logs.console; 
-      const action = data.logs.action;
-      const conso1 = errList[0].console;
-      const action1 = errList[0].action;
-      // 分别添加进对应的数组
-      const errorList = (conso && conso.errorList) || [];
-      errorList.push(...conso1.errorList);
-      const typeError = (conso && conso.typeError) || [];
-      typeError.push(...conso1.typeError);
-      const warnList = (conso && conso.warnList) || [];
-      warnList.push(...conso1.warnList);
-      // 分别添加进对应的数组
-      const clickList = (action && action.clickList) || [];
-      clickList.push(...action1.clickList);
-      const routeList = (action && action.routeList) || [];
-      routeList.push(...action1.routeList);
+    try {
+      const data = this.getData();
+      const errList = this.storage && this.storage.get('MsError') || [];
+      
+      if(errList.length > 0 && errList[0].console && errList[0].action) {
+        const conso = data.logs.console; 
+        const action = data.logs.action;
+        const conso1 = errList[0].console;
+        const action1 = errList[0].action;
+        // 分别添加进对应的数组
+        const errorList = (conso && conso.errorList) || [];
+        conso1.errorList && errorList.push(...conso1.errorList);
+        const typeError = (conso && conso.typeError) || [];
+        conso1.typeError && typeError.push(...conso1.typeError);
+        const warnList = (conso && conso.warnList) || [];
+        conso1.warnList && warnList.push(...conso1.warnList);
+        // 分别添加进对应的数组
+        const clickList = (action && action.clickList) || [];
+        action1.clickList && clickList.push(...action1.clickList);
+        const routeList = (action && action.routeList) || [];
+        action1.routeList && routeList.push(...action1.routeList);
+      }
+      this.storage.set('MsError', data.logs);
+      return data;
+    } catch(err) {
+      console.error(err);
+      return false;
     }
-    this.storage.set('MsError', data.logs);
-    return data;
   }
 
   clearLog() {
@@ -264,6 +269,6 @@ class MsWatch {
     }
   }
 }
-module.exports = {
-  MsWatch
+export {
+  MsWatch 
 };

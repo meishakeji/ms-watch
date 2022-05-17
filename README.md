@@ -48,7 +48,7 @@ const { MSMain } = require('ms-watch');
 ```javascript
 const m = new MSMain({
   projectName: 'msManagerAdmin',  // 项目名称
-  url: 'http://10.38.243.19:9090/v1/fex/track',   // 上报地址
+  url: '/v1/fex/track',   // 上报地址
   router: router    // VueRouter 实例
 })
 ```

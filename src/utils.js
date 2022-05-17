@@ -19,7 +19,7 @@ const tryError = (callback) => {
   }
 }
 
-module.exports = {
+export {
   guid,
   tryError,
 };

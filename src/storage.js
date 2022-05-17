@@ -5,10 +5,7 @@ class MSStorage {
   }
 
   get(key) {
-    if (!this.userId) {
-      return false;
-    }
-    const result = window.localStorage.getItem(`${key}-${this.userId}`);
+    const result = window.localStorage.getItem(`${key}`);
     if (result) {
       return JSON.parse(result);
     }
@@ -16,10 +13,7 @@ class MSStorage {
   }
 
   set(key, value) {
-    if (!this.userId) {
-      return false;
-    }
-    window.localStorage.setItem(`${key}-${this.userId}`, JSON.stringify(value));
+    window.localStorage.setItem(`${key}`, JSON.stringify(value));
   }
 
   remove(key) {
@@ -28,6 +22,6 @@ class MSStorage {
 
 }
 
-module.exports = {
+export {
   MSStorage,
 };
